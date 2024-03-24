@@ -17,7 +17,8 @@
 #ifndef COOKBOOKHELPER_CUH
 #define COOKBOOKHELPER_CUH
 
-#include <NvInfer.h>
+// #include <NvInfer.h>
+#include<TensorRT/NvInfer.h>
 #include <cassert>
 #include <chrono>
 #include <cmath>

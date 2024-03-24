@@ -18,10 +18,12 @@
 
 // kernel for GPU
 __global__ void addScalarKernel(const float *input, float *output, const float scalar, const int nElement)
+// cuda中global关键字修饰函数表示该函数必须由CPU调用，GPU运行
 {
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= nElement)
-        return;
+    //cuda中kernel函数内置变量blockIdx表示目前执行该kernel的block信息，threadIdx表示执行该kernel的thread信息
+    if (index >= nElement) // 如果越界就返回，否则会出现内存访问错误
+        return; //cuda中kernel不允许返回值，但是return可以用来提前结束函数
 
     float _1      = input[index];
     float _2      = _1 + scalar;
