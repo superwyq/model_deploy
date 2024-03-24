@@ -1,0 +1,27 @@
+# module
+*.onnx
+*.pt
+*.pth
+*.engine
+*.trt
+*.plan
+module/
+source/
+
+# C++
+*.d
+
+*.slo
+*.lo
+*.o
+*.obj
+
+*.gch
+
+*.out
+build/
+.vscode/
+
+# custom
+*ignore/
+tensorRT_Pro/

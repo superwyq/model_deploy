@@ -1,0 +1,38 @@
+[I] RUNNING | Command: /home/wyq/opt/miniconda3/envs/dlpy38/bin/polygraphy surgeon sanitize /home/wyq/hobby/model_deploy/models/yolov5/yolov5s_v7.onnx --fold-constant -o modelA-FoldConstant.onnx
+[I] Loading model: /home/wyq/hobby/model_deploy/models/yolov5/yolov5s_v7.onnx
+[W] Falling back to `onnx.shape_inference` because `onnxruntime.tools.symbolic_shape_infer` either could not be loaded or did not run successfully.
+    Note that using ONNX-Runtime for shape inference may be faster and require less memory.
+    Consider installing ONNX-Runtime or setting POLYGRAPHY_AUTOINSTALL_DEPS=1 in your environment variables to allow Polygraphy to do so automatically.
+[I] Loading model: /tmp/tmp_polygraphy_91636f0a3120ef2834ece066adf1e8f8674f1e8f4fb49281.onnx
+[I] Original Model:
+    Name: main_graph | ONNX Opset: 17
+    
+    ---- 1 Graph Input(s) ----
+    {images [dtype=float32, shape=(1, 3, 640, 640)]}
+    
+    ---- 1 Graph Output(s) ----
+    {output0 [dtype=float32, shape=(1, 25200, 85)]}
+    
+    ---- 120 Initializer(s) ----
+    
+    ---- 293 Node(s) ----
+    
+[I] Folding Constants | Pass 1
+[I]     Total Nodes | Original:   293, After Folding:   236 |    57 Nodes Folded
+[I] Folding Constants | Pass 2
+[I]     Total Nodes | Original:   236, After Folding:   236 |     0 Nodes Folded
+[I] Saving ONNX model to: modelA-FoldConstant.onnx
+[I] New Model:
+    Name: main_graph | ONNX Opset: 17
+    
+    ---- 1 Graph Input(s) ----
+    {images [dtype=float32, shape=(1, 3, 640, 640)]}
+    
+    ---- 1 Graph Output(s) ----
+    {output0 [dtype=float32, shape=(1, 25200, 85)]}
+    
+    ---- 147 Initializer(s) ----
+    
+    ---- 236 Node(s) ----
+    
+[I] PASSED | Runtime: 2.399s | Command: /home/wyq/opt/miniconda3/envs/dlpy38/bin/polygraphy surgeon sanitize /home/wyq/hobby/model_deploy/models/yolov5/yolov5s_v7.onnx --fold-constant -o modelA-FoldConstant.onnx

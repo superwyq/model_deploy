@@ -1,0 +1,5 @@
+官方实现一个GELU激活函数的plugin的流程如下。
+> GELU激活函数：
+$$y=x\times P(X \le x) = x\times \phi(x)$$
+其中x是输入值，X是具有零均值和单位方差的高斯随机变量。P(X<=x)是X小于或等于给定值x的概率。
+关于GELU更详细的讲解可以看[这篇blog](https://zhuanlan.zhihu.com/p/586539385)和[这篇blog](https://zhuanlan.zhihu.com/p/397517155)

@@ -1,0 +1,5 @@
+[W] CUDA lazy loading is not enabled. Enabling it can significantly reduce device memory usage and speed up TensorRT initialization. See "Lazy Loading" section of CUDA documentation https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#lazy-loading
+[I] Loading bytes from /home/wyq/hobby/model_deploy/models/yolov5/yolov5s.onnx
+[W] onnx2trt_utils.cpp:374: Your ONNX model has been generated with INT64 weights, while TensorRT does not natively support INT64. Attempting to cast down to INT32.
+[W] onnx2trt_utils.cpp:400: One or more weights outside the range of INT32 was clamped
+[I] Graph is fully supported by TensorRT; Will not generate subgraphs.
