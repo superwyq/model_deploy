@@ -6,6 +6,6 @@ __global__ void helloWorld() {
 
 int main() {
     helloWorld<<<2, 2>>>();
-    cudaDeviceSynchronize();
+    cudaDeviceSynchronize(); //用于设备函数执行对齐。
     return 0;
 }
