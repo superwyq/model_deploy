@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.11)
+project(custom_operator LANGUAGES CUDA CXX)
+set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 11)
+
+include(CheckLanguage)
+check_language(CUDA)
+
+find_package(CUDA REQUIRED)
+if(CUDA_FOUND)
+    message(STATUS "CUDA found")
+    message(${CUDA_INCLUDE_DIRS})
+    message(${CUDA_LIBRARIES})
+    include_directories(${CUDA_INCLUDE_DIRS})
+    link_directories(${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+endif()
+
+add_executable(custom_operator transpose.cu)
+set_source_files_properties(transpose.cu PROPERTIES LANGUAGE CUDA)
+
+find_package(OpenCV REQUIRED)
+if(OpenCV_FOUND)
+    message(STATUS "OpenCV found")
+    message(${OpenCV_LIBS})
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(custom_operator ${OpenCV_LIBS})
+endif()
