@@ -1,7 +1,8 @@
 #include <cuda_runtime.h>
 #include <iostream>
+#include "nvToolsExt.h"
 
-#define BLOCK_WIDTH 16
+#define BLOCK_WIDTH 64
 
 __global__ void matrixMul(int *a, int *b, int *c, int width) {
   __shared__ int subTileA[BLOCK_WIDTH][BLOCK_WIDTH]; //share memory是可以声明在核函数内的
@@ -10,28 +11,28 @@ __global__ void matrixMul(int *a, int *b, int *c, int width) {
   int row = blockIdx.y * BLOCK_WIDTH + threadIdx.y;
   int col = blockIdx.x * BLOCK_WIDTH + threadIdx.x;
 
-  int sum = 0;
-  
-  for (int t = 0; t < width / BLOCK_WIDTH; ++t) { //初始化
-    subTileA[threadIdx.y][threadIdx.x] =
-        a[row * width + t * BLOCK_WIDTH + threadIdx.x];
-    subTileB[threadIdx.y][threadIdx.x] =
-        b[(t * BLOCK_WIDTH + threadIdx.y) * width + col];
+  if(row >= width || col >= width) return;
+
+  for (int i = 0; i < width / BLOCK_WIDTH; ++i) {
+    subTileA[threadIdx.y][threadIdx.x] = a[row * width + i * BLOCK_WIDTH + threadIdx.x];
+    subTileB[threadIdx.y][threadIdx.x] = b[(i * BLOCK_WIDTH + threadIdx.y) * width + col];
     __syncthreads();
 
-    for (int k = 0; k < BLOCK_WIDTH; ++k) {
-      sum += subTileA[threadIdx.y][k] * subTileB[k][threadIdx.x];
+    int sum = 0;
+    for (int j = 0; j < BLOCK_WIDTH; ++j) {
+      sum += subTileA[threadIdx.y][j] * subTileB[j][threadIdx.x];
     }
     __syncthreads();
+    c[row * width + col] += sum;
   }
-
-  c[row * width + col] = sum;
 }
 
 __global__ void matrixMul_worse(int *a, int *b, int *c, int width) {
   int row = blockIdx.y * blockDim.y + threadIdx.y;
   int col = blockIdx.x * blockDim.x + threadIdx.x;
 
+
+  if(row >= width || col >= width) return;
   int sum = 0;
   for (int i = 0; i < width; ++i) {
     sum += a[row * width + i] * b[i * width + col];
@@ -41,7 +42,7 @@ __global__ void matrixMul_worse(int *a, int *b, int *c, int width) {
 }
 
 int main() {
-    const int width = 128;
+    const int width = 1 << 10;
     const int size = width * width * sizeof(int);
 
     int *h_a, *h_b, *h_c, *h_c2;
@@ -72,45 +73,43 @@ int main() {
     cudaEvent_t start, stop; //定义事件
     cudaEventCreate(&start); //创建事件
     cudaEventCreate(&stop);
-    cudaEventRecord(start); //记录一个开始事件
+    cudaEventRecord(start,0); //记录一个开始事件
     cudaEventSynchronize(start); //同步事件
-    matrixMul<<<dimGrid, dimBlock>>>(d_a, d_b, d_c, width);
-    cudaDeviceSynchronize();
 
-    cudaEventRecord(stop); //记录一个结束事件
+    matrixMul<<<dimGrid, dimBlock>>>(d_a, d_b, d_c, width);
+    cudaStreamSynchronize(0);
+    cudaEventRecord(stop,0); //记录一个结束事件
     cudaEventSynchronize(stop); //同步事件
 
     cudaEventElapsedTime(&runtime[0], start, stop); //计算时间差
-    std::cout << "Elapsed time 1: " << runtime[0] << " ms" << std::endl;
-    cudaEventDestroy(start); //销毁事件
-    cudaEventDestroy(stop);
+    std::cout << "Elapsed time 1: \t" << runtime[0] << " ms" << std::endl;
 
-    cudaEventCreate(&start); //创建事件
-    cudaEventCreate(&stop);
-    cudaEventRecord(start); //记录一个开始事件
-    cudaEventSynchronize(start); //同步事件
-    matrixMul_worse<<<dimGrid, dimBlock>>>(d_a, d_b, d_c2, width);
-    cudaDeviceSynchronize();
-    cudaEventRecord(stop); //记录一个结束事件
-    cudaEventSynchronize(stop); //同步事件
-    cudaEventElapsedTime(&runtime[1], start, stop); //计算时间差
-    std::cout << "Elapsed time 2: " << runtime[1] << " ms" << std::endl;
+    cudaEvent_t start2, stop2;
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+    cudaEventCreate(&start2); //创建事件
+    cudaEventCreate(&stop2);
+    cudaEventRecord(start2,stream); //记录一个开始事件
+    cudaEventSynchronize(start2); //同步事件
+
+    matrixMul_worse<<<dimGrid, dimBlock, 0, stream>>>(d_a, d_b, d_c2, width);
+    cudaStreamSynchronize(stream);
+    cudaEventRecord(stop2,stream); //记录一个结束事件
+    cudaEventSynchronize(stop2); //同步事件
+    cudaEventElapsedTime(&runtime[1], start2, stop2); //计算时间差
+    std::cout << "worse Elapsed time 2: \t" << runtime[1] << " ms" << std::endl;
+
 
     cudaMemcpy(h_c, d_c, size, cudaMemcpyDeviceToHost);
     cudaMemcpy(h_c2, d_c2, size, cudaMemcpyDeviceToHost);
 
-    for (int i = 1; i < width; ++i) {
-      std::cout << h_c[i*width]<< " ";
-      if (i % 16 == 0) {
-        std::cout << std::endl;
-      }
-    }
-
     for (int i = 0; i < width; ++i) {
       if (h_c[i] != h_c2[i]) {
         std::cout << "Error" << std::endl;
+        std::cout << h_c[i] << " " << h_c2[i] << std::endl;
         break;
       }
+      std::cout << h_c[i] << " " << h_c2[i];
     }
 
     // 处理结果
@@ -121,6 +120,7 @@ int main() {
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
+    cudaFree(d_c2);
 
     return 0;
 }

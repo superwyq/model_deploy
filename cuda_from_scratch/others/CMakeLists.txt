@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.0)
+project(nchw LANGUAGES CXX)
+set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_CXX_STANDARD 11)
+
+add_executable(nchw nchw.cpp)
+find_package(OpenCV REQUIRED)
+if(OpenCV_FOUND)
+    message(STATUS "OpenCV found")
+    message(${OpenCV_LIBS})
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(nchw ${OpenCV_LIBS})
+endif()
